@@ -233,7 +233,52 @@
 </div>
 
 <script>
-const VOCAB = [
+const SHEET_ID = "1g5yUgLqovVB-ZffNvVaiGrMLBKF9uNMcbK3iWpzNVjs";
+const SHEET_NAME = "Untitled";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(SHEET_NAME);
+const VOCAB_CACHE_KEY = "ielts_vocab_rows_cache_v1";
+
+function toVocab(rows){
+  return rows.map((r,i)=>({id:i, w:r[0], t:r[1], v:r[2], p:r[3], e:r[4]}));
+}
+
+// simple CSV parser: handles quoted fields with commas, newlines and "" escapes
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i=0; i<text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    }else{
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field = ""; }
+      else if(c === '\n' || c === '\r'){
+        if(c === '\r' && text[i+1] === '\n') i++;
+        row.push(field); field = "";
+        rows.push(row); row = [];
+      } else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r => r.length>1 && r[0] !== "" );
+}
+
+function rowsFromFallback(){
+  return FALLBACK_ROWS;
+}
+function rowsFromCache(){
+  try{
+    const raw = localStorage.getItem(VOCAB_CACHE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return null;
+}
+
+const FALLBACK_ROWS = [
 ["Flat = Apartment","(n)","căn hộ","gōngyù","My friend lives in a small flat near the city center."],
 ["Settle in","(v)","định cư, an cư","dìngjū / āndùn xiàlái","It took me a few weeks to settle in after I moved to the new city."],
 ["Cousin","(n)","anh chị em họ","tángxiōngdìjiěmèi / biǎoxiōngdìjiěmèi","My cousin visits our family every Tet holiday."],
@@ -365,7 +410,9 @@ const VOCAB = [
 ["Peer","(n)","bạn đồng trang lứa","tónglíngrén","Teenagers often listen to their peers more than their parents."],
 ["Consist of","(v)","bao gồm","bāokuò / yóu…zǔchéng","The team consists of five engineers and one designer."],
 ["Several","(adj/det)","một số, vài","jǐ ge / ruògān","I've been to that restaurant several times."]
-].map((r,i)=>({id:i, w:r[0], t:r[1], v:r[2], p:r[3], e:r[4]}));
+];
+
+let VOCAB = toVocab(rowsFromCache() || rowsFromFallback());
 
 const DAY_SIZE = 7;
 const LS_KEY = "ielts_vocab_state_v1";
@@ -531,6 +578,22 @@ document.querySelectorAll(".tab").forEach(tab=>{
 });
 
 render();
+syncFromSheet();
+
+function syncFromSheet(){
+  fetch(CSV_URL).then(res => {
+    if(!res.ok) throw new Error("fetch failed");
+    return res.text();
+  }).then(text => {
+    const rows = parseCSV(text).slice(1) // drop header row
+      .map(r => [r[0], r[1], r[2], r[4], r[5]]); // drop Chữ Hán (index 3)
+    if(rows.length < 5) throw new Error("unexpected sheet content");
+    try{ localStorage.setItem(VOCAB_CACHE_KEY, JSON.stringify(rows)); }catch(e){}
+    VOCAB = toVocab(rows);
+    if(idx >= currentDeck().length) idx = 0;
+    render();
+  }).catch(()=>{ /* offline or sheet unreachable: keep cached/fallback data */ });
+}
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
