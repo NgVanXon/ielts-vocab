@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Flashcard IELTS - Sơn</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IELTS Vocab">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#11161d">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* palette: cool paper + teal ink, Fraunces display / Figtree body, card-flip layout */
+    --bg:#f2f4f7;
+    --surface:#ffffff;
+    --surface-2:#e9edf2;
+    --text:#1c2430;
+    --text-dim:#5b6472;
+    --accent:#2f6f6a;
+    --accent-ink:#1f4b47;
+    --accent-soft:#dbeeec;
+    --good:#2f8f5b;
+    --good-soft:#dff3e6;
+    --bad:#b84a3a;
+    --bad-soft:#fbe6e2;
+    --border:#dde2e8;
+    --shadow: 0 1px 2px rgba(20,30,40,.06), 0 8px 24px rgba(20,30,40,.08);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#11161d;
+      --surface:#19212b;
+      --surface-2:#212b36;
+      --text:#e9edf2;
+      --text-dim:#9aa5b1;
+      --accent:#5fd3c4;
+      --accent-ink:#bdf0e6;
+      --accent-soft:#1e3734;
+      --good:#5fcf8f;
+      --good-soft:#1c3328;
+      --bad:#e2816c;
+      --bad-soft:#3a2420;
+      --border:#2a3340;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#11161d;
+    --surface:#19212b;
+    --surface-2:#212b36;
+    --text:#e9edf2;
+    --text-dim:#9aa5b1;
+    --accent:#5fd3c4;
+    --accent-ink:#bdf0e6;
+    --accent-soft:#1e3734;
+    --good:#5fcf8f;
+    --good-soft:#1c3328;
+    --bad:#e2816c;
+    --bad-soft:#3a2420;
+    --border:#2a3340;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Figtree",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    justify-content:center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .app{
+    width:100%;
+    max-width:480px;
+    min-height:100%;
+    display:flex;
+    flex-direction:column;
+    padding:16px 16px 20px;
+  }
+
+  header{padding:4px 2px 14px;}
+  .title{
+    font-family:"Fraunces",serif;
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{color:var(--text-dim); font-size:13px; margin-top:2px;}
+
+  .progress-row{display:flex; align-items:center; gap:10px; margin-top:12px;}
+  .progress-track{flex:1; height:6px; border-radius:99px; background:var(--surface-2); overflow:hidden;}
+  .progress-fill{height:100%; background:var(--accent); border-radius:99px; transition:width .3s ease;}
+  .progress-label{font-size:12px; color:var(--text-dim); font-variant-numeric:tabular-nums; white-space:nowrap;}
+
+  .tabs{display:flex; gap:6px; margin-top:16px; background:var(--surface-2); padding:4px; border-radius:12px;}
+  .tab{
+    flex:1; text-align:center; padding:9px 4px; border-radius:9px; font-size:13px; font-weight:600;
+    color:var(--text-dim); cursor:pointer; user-select:none; border:none; background:transparent;
+    font-family:inherit;
+  }
+  .tab.active{background:var(--surface); color:var(--accent-ink); box-shadow:var(--shadow);}
+  .tab .count{font-weight:500; opacity:.75;}
+
+  main{flex:1; display:flex; flex-direction:column; margin-top:18px; min-height:0;}
+
+  .deck-info{display:flex; justify-content:space-between; align-items:baseline; font-size:12px; color:var(--text-dim); margin-bottom:8px; padding:0 2px;}
+  .deck-info b{color:var(--text); font-variant-numeric:tabular-nums;}
+
+  .card-wrap{
+    perspective:1400px;
+    flex:1;
+    min-height:280px;
+    touch-action:pan-y;
+  }
+  .card{
+    position:relative;
+    width:100%;
+    height:100%;
+    min-height:280px;
+    transform-style:preserve-3d;
+    transition:transform .45s cubic-bezier(.2,.8,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{transform:rotateY(180deg);}
+  .face{
+    position:absolute; inset:0;
+    backface-visibility:hidden;
+    border-radius:20px;
+    background:var(--surface);
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    padding:24px 22px;
+    display:flex;
+    flex-direction:column;
+  }
+  .face.back{transform:rotateY(180deg); overflow-y:auto;}
+
+  .type-pill{
+    align-self:flex-start;
+    font-size:11px; font-weight:700; letter-spacing:.02em;
+    color:var(--accent-ink); background:var(--accent-soft);
+    padding:4px 10px; border-radius:99px; margin-bottom:auto;
+  }
+  .front-word{
+    font-family:"Fraunces",serif;
+    font-weight:600;
+    font-size:clamp(28px,7vw,38px);
+    line-height:1.15;
+    text-wrap:balance;
+    margin:auto 0;
+  }
+  .hint{
+    font-size:12px; color:var(--text-dim); text-align:center;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+
+  .back-label{font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;}
+  .back-vi{font-size:22px; font-weight:600; margin-bottom:16px; text-wrap:balance;}
+  .back-pinyin{
+    font-size:17px; color:var(--accent-ink); background:var(--accent-soft);
+    padding:8px 12px; border-radius:10px; margin-bottom:16px; width:fit-content;
+  }
+  .back-example{font-size:14px; color:var(--text-dim); font-style:italic; line-height:1.5; border-left:3px solid var(--border); padding-left:12px;}
+
+  .controls{display:flex; align-items:center; gap:10px; margin-top:14px;}
+  .nav-btn{
+    width:44px; height:44px; border-radius:12px; border:1px solid var(--border);
+    background:var(--surface); color:var(--text); font-size:18px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .mark-btns{flex:1; display:flex; gap:8px;}
+  .mark-btn{
+    flex:1; padding:12px 6px; border-radius:12px; border:1px solid var(--border);
+    font-weight:700; font-size:13px; cursor:pointer; font-family:inherit;
+    background:var(--surface); color:var(--text);
+  }
+  .mark-btn.know{color:var(--good);}
+  .mark-btn.know.active{background:var(--good-soft); border-color:var(--good);}
+  .mark-btn.dontknow{color:var(--bad);}
+  .mark-btn.dontknow.active{background:var(--bad-soft); border-color:var(--bad);}
+
+  .empty-state{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:10px; color:var(--text-dim); padding:30px 10px;
+  }
+  .empty-state .big{font-family:"Fraunces",serif; font-size:20px; color:var(--text); font-weight:600;}
+  .primary-btn{
+    margin-top:6px; padding:12px 20px; border-radius:12px; border:none;
+    background:var(--accent); color:var(--surface); font-weight:700; font-size:14px; cursor:pointer;
+    font-family:inherit;
+  }
+
+  footer{margin-top:14px; text-align:center; font-size:11px; color:var(--text-dim);}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">Flashcard IELTS 🔖</div>
+    <div class="subtitle">Từ vựng song ngữ Anh · Việt · Pinyin — học dần mỗi khi rảnh</div>
+    <div class="progress-row">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">0/0 đã thuộc</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab" data-mode="today">Hôm nay <span class="count" id="countToday"></span></button>
+    <button class="tab" data-mode="review">Ôn tập <span class="count" id="countReview"></span></button>
+    <button class="tab" data-mode="all">Tất cả <span class="count" id="countAll"></span></button>
+  </div>
+
+  <main>
+    <div class="deck-info" id="deckInfo"></div>
+    <div id="deckArea"></div>
+  </main>
+
+  <footer>Chạm vào thẻ để lật · vuốt trái/phải để chuyển từ</footer>
+</div>
+
+<script>
+const VOCAB = [
+["Flat = Apartment","(n)","căn hộ","gōngyù","My friend lives in a small flat near the city center."],
+["Settle in","(v)","định cư, an cư","dìngjū / āndùn xiàlái","It took me a few weeks to settle in after I moved to the new city."],
+["Cousin","(n)","anh chị em họ","tángxiōngdìjiěmèi / biǎoxiōngdìjiěmèi","My cousin visits our family every Tet holiday."],
+["Area","(n)","khu vực","dìqū / qūyù","This area is quiet, so many families live here."],
+["Harbour","(n)","bến cảng","gǎngkǒu","Many fishing boats stay in the harbour at night."],
+["Sort of + N = Type of + N","","loại gì đó","zhǒnglèi","What sort of food do you like to eat for lunch?"],
+["Neither of","","cả hai đều không","liǎng gè dōu bù","Neither of my brothers likes spicy food."],
+["Far end","","cuối đằng kia, đầu xa nhất","jìntóu","The meeting room is at the far end of the hallway."],
+["Run out of + N = Out of stock","","hết hàng","yòngwán / quē huò","We ran out of milk, so I need to go to the shop."],
+["Plenty of + N","","nhiều cái gì đó","hěn duō / dàliàng","Don't worry, we have plenty of time before the meeting."],
+["Be able to + V","","có khả năng làm gì","nénggòu","After some practice, I was able to write simple SQL queries."],
+["Salmon","(n)","cá hồi","sānwényú","I had grilled salmon with rice for dinner."],
+["Tuna","(n)","cá ngừ","jīnqiāngyú","She made a tuna sandwich for lunch."],
+["Shell","(n)","vỏ (khác với Shield (n): khiên)","ké / dùnpái","The egg shell was very thin, so it broke easily."],
+["Range of + N","","một loạt các loại","yí xìliè","The shop sells a wide range of phone cases."],
+["Goods","(n)","hàng hóa","shāngpǐn / huòwù","The store sells goods from many different countries."],
+["Confuse","(v)","làm cho ai đó bị rối ren","shǐ kùnhuò / gǎohùn","The new dashboard layout confuses users because the filters keep moving to different positions every update."],
+["Separate","(v)","ngăn cách","fēnkāi / gékāi","A small wall separates the kitchen from the living room."],
+["Origin","(n)","nguồn gốc","qǐyuán / láiyuán","Do you know the origin of this word?"],
+["Nutrition → Nutritious → Nutritional","(n) → (adj) → (adj)","dinh dưỡng → giàu dinh dưỡng → thuộc về dinh dưỡng","yíngyǎng / yǒu yíngyǎng / yíngyǎng de","Good nutrition is important, so I choose nutritious food and check its nutritional value."],
+["Throughout","","xuyên suốt","zìshǐ zhìzhōng / zhěnggè qījiān","It rained throughout the whole weekend."],
+["Semester","(n)","học kì","xuéqī","I will take an English course next semester."],
+["Tutor","(n)","gia sư","jiājiào","My tutor helps me practice speaking every Saturday."],
+["Balance","(v, n)","cân bằng","pínghéng","It is hard to balance work and study at the same time."],
+["Fluid","(n)","chất lỏng","yètǐ","Drink plenty of fluids when the weather is hot."],
+["Obtain = Achieve","(v)","đạt được","huòdé / dádào","She obtained a good score on her English test."],
+["Relax → Relaxation","(v) → (n)","thư giãn, nghỉ ngơi → sự thư giãn","fàngsōng","I listen to music to relax after a long day at work."],
+["Improve → Improvement","(v) → (n)","cải thiện → sự cải thiện","gǎishàn / tígāo","My English has improved a lot since I started studying every night."],
+["Productive → Productivity","(adj) → (n)","năng suất → sản lượng, sự năng suất","gāoxiào / shēngchǎnlǜ","I feel more productive in the morning, so my productivity is higher before lunch."],
+["Aspect","(n)","khía cạnh","fāngmiàn","Price is an important aspect when we choose a new laptop."],
+["Chores","(n)","việc nhà","jiāwù","I do chores like washing dishes and cleaning the floor on weekends."],
+["Be distracted → Distract → Distraction","(adj) → (v) → (n)","bị xao nhãng → làm xao nhãng → sự xao nhãng","fēnxīn / shǐ fēnxīn / gānrǎo","I get distracted easily when my phone keeps buzzing."],
+["Sustain = Maintain → Sustainable → Sustainability","(v) → (adj) → (n)","duy trì, kéo dài → bền vững → sự bền vững","wéichí / kěchíxù de / kěchíxùxìng","A good breakfast can sustain your energy through the whole morning."],
+["Unwind = Relax","(v)","thư giãn","fàngsōng","I like to take a walk to unwind after work."],
+["Innovation","(n)","sự cải tiến, sự đổi mới","chuàngxīn","New innovations make our daily work faster and easier."],
+["Commute → Commuter","(v) → (n)","đi từ nhà tới công ty/trường học → người đi làm/đi học hằng ngày","tōngqín / tōngqínzhě","I commute to work by bus every morning."],
+["Approximately","(adv)","trong khoảng","dàyuē","The meeting will take approximately one hour."],
+["Nuclear → Nuclear family","(adj)","thuộc về hạt nhân → gia đình cơ bản có bố mẹ và con cái","hé / héxīn jiātíng","A nuclear family has parents and their children."],
+["Individual","(n)","cá nhân","gèrén","Each individual has a different way of learning."],
+["Instrument → Instrumental","(n) → (adj)","nhạc cụ → thuộc về nhạc cụ","yuèqì","The guitar is my favorite musical instrument."],
+["Coordinator","(n)","người điều phối, người đảm nhận","xiétiáoyuán","The event coordinator sent everyone the schedule."],
+["Retired → Retirement","(adj) → (n)","nghỉ hưu → sự nghỉ hưu","tuìxiū de / tuìxiū","My grandfather is retired, so he has more free time now."],
+["Concentrate = Focus → Concentration","(v) → (n)","tập trung → sự tập trung","jízhōng / zhuānzhù","It is hard to concentrate when the room is noisy."],
+["Impress → Impressed → Impressive","(v) → (adj) → (adj)","tạo ấn tượng → bị ấn tượng → rất ấn tượng","gěi rén liúxià yìnxiàng / lìng rén yìnxiàng shēnkè","Her presentation really impressed the whole team."],
+["Experiment","(v, n)","thí nghiệm","shíyàn","The students did a small experiment with water in science class."],
+["Charge","(v)","sạc pin / tính phí ai đó","chōngdiàn / shōufèi","Please charge your phone, because the taxi driver will charge you extra at night."],
+["Obese → Obesity","(adj) → (n)","béo phì → sự béo phì","féipàng","Doctors say obese people should exercise more."],
+["Assemble","(v)","lắp ráp","zǔzhuāng","It took me an hour to assemble this desk."],
+["Manufacture","(v)","sản xuất","zhìzào / shēngchǎn","This company manufactures furniture and sells it around the world."],
+["Thousand","(n)","nghìn","qiān","About ten thousand people visit the park every year."],
+["Look at = examine","(phr.v)","xem xét kỹ","zǐxì chákàn","Let's look at the data carefully before we make a decision."],
+["Artefact","(n)","đồ vật khảo cổ","wénwù","The museum has many old artefacts from ancient Egypt."],
+["Certain → Certainty","(adj) → (n)","chắc chắn → sự chắc chắn","quèdìng / kěndìng","I am certain that I locked the door."],
+["Definite → Definitely","(adj) → (adv)","chắc chắn → chắc chắn rồi","míngquè de / yídìng","We don't have a definite date for the trip yet."],
+["External ≠ Internal","(adj) ≠ (adj)","bên ngoài ≠ bên trong","wàibù de / nèibù de","The external walls of the house are painted white."],
+["Bury → Burial","(v) → (n)","chôn, chôn cất → sự chôn cất","mái / máizàng","The dog buried a bone in the garden."],
+["Incredible","(adj)","tuyệt vời, đỉnh","bùkě sīyì / tài bàng le","The view from the top of the mountain was incredible."],
+["Expect → Expectation → Expected → Unexpected","(v) → (n) → (adj) → (adj)","kỳ vọng → sự kỳ vọng → được kỳ vọng → không như kỳ vọng","qīdài / qīwàng / yìwài de","I expected the report to be ready today, but it wasn't."],
+["Dynasty","(n)","triều đại","cháodài","Vietnam had many dynasties, like the Ly and the Tran."],
+["Argue → Argument","(v) → (n)","lập luận, tranh cãi → cuộc tranh cãi","zhēnglùn / zhēngchǎo","The two brothers often argue about which TV show to watch."],
+["Conceive","(v)","nảy ra ý tưởng / (sinh học) thụ thai","gòusī / huáiyùn","She conceived a new plan to save money."],
+["Progress → Progressive","(n) → (adj)","sự tiến bộ → thuộc về tiến bộ","jìnbù","I can see clear progress in my English this month."],
+["Reign","(n)","sự trị vì, ngự trị","tǒngzhì / zàiwèi","The king's reign lasted for thirty years."],
+["Prior to + N","","trước một thời điểm nào đó","zài…zhīqián","Prior to the meeting, please read the report."],
+["Historian","(n)","nhà sử học","lìshǐ xuéjiā","A historian wrote a book about Hanoi in the past."],
+["Exaggeration","(n)","sự phóng đại, sự cường điệu","kuāzhāng","Saying he knows everything is an exaggeration."],
+["Constitute → Constitution","(v) → (n)","cấu tạo, tạo nên → cơ cấu / thể trạng / hiến pháp","gòuchéng / tǐzhì / xiànfǎ","Women constitute half of our team."],
+["Revolution → Revolutionary","(n) → (adj)","cuộc cách mạng, sự thay đổi lớn → mang tính cách mạng","gémìng / gémìngxìng de","The smartphone caused a revolution in how we communicate."],
+["Astonish → Astonished → Astonishing","(v) → (adj) → (adj)","làm kinh ngạc → kinh ngạc → đáng kinh ngạc","shǐ jīngyà / zhènjīng","His fast progress astonished all his teachers."],
+["Amaze → Amazed → Amazing","(v) → (adj) → (adj)","làm ngạc nhiên → kinh ngạc → tuyệt vời, đáng kinh ngạc","shǐ jīngtàn / jīngrén","The magic show amazed the children."],
+["Archaeologist","(n)","nhà khảo cổ học","kǎogǔ xuéjiā","Archaeologists found old coins under the ground."],
+["Excavate → Excavation","(v) → (n)","khai quật, đào bới → sự khai quật","wājué / fājué","They excavated the old temple for two years."],
+["Accomplishment → Accomplish","(n) → (v)","thành tựu, thành tích → hoàn thành, đạt được","chéngjiù / wánchéng","Finishing the marathon was a great accomplishment for her."],
+["Predecessor","(n)","người tiền nhiệm, người đi trước","qiánrèn","My new manager works differently from his predecessor."],
+["Vessel","(n)","tàu/thuyền; bình chứa","chuánzhī / róngqì","The museum shows old clay vessels that people used to keep water."],
+["Beneath = under","(adv)","bên dưới, phía dưới","zài…xiàmiàn","The cat is sleeping beneath the table."],
+["Purpose → Purposeful","(n) → (adj)","mục đích → có mục đích, có chủ đích","mùdì","What is the purpose of your visit?"],
+["Portable → Portability","(adj) → (n)","có thể mang theo, di động → tính di động","biànxié de","This small speaker is portable, so I take it everywhere."],
+["There is no question that... (= no doubt)","","không còn nghi ngờ gì nữa","háowú yíwèn","There is no question that regular practice improves your English."],
+["Diverse → Diversity","(adj) → (n)","đa dạng → sự đa dạng","duōyàng de / duōyàngxìng","Vietnam has a diverse food culture."],
+["Conserve → Conservation","(v) → (n)","bảo tồn → sự bảo tồn","bǎohù / bǎocún","We should conserve water during the dry season."],
+["Dismiss","(v)","bác bỏ","bóhuí / bùyǔ lǐhuì","The manager dismissed the idea because it cost too much."],
+["Carry out = Conduct","(v)","thực hiện","jìnxíng / kāizhǎn","The team carried out a survey about online shopping."],
+["Species","(n)","giống loài","wùzhǒng","There are many species of fish in this lake."],
+["Crucial = vital = essential = necessary = important","(adj)","cực kỳ quan trọng","zhìguān zhòngyào / guānjiàn","Sleep is crucial for your health."],
+["Encourage → Encouragement","(v) → (n)","khuyến khích, động viên → sự động viên","gǔlì","My teacher always encourages me to speak English in class."],
+["Take the lead = Take the dominant","","chiếm ưu thế, chiếm nhiều nhất","lǐngxiān / zhàn yōushì","At first, Team A took the lead, but Team B won in the end."],
+["Take over","","chiếm, vượt","qǔdài / chāoguò","Online shopping has taken over from shopping in stores for many people."],
+["Surpass","(v)","vượt","chāoyuè / chāoguò","Her test score surpassed everyone's in the class."],
+["Stand at (stood at)","","đạt ở mức bao nhiêu","dádào / bǎochí zài","The price stood at 100 dollars in March."],
+["Account for","","chiếm bao nhiêu","zhàn","Students account for 60% of our customers."],
+["Occupy","(v)","chiếm bao nhiêu","zhànjù / zhàn","Mobile users occupied 70% of all visits."],
+["Start at (started at)","","bắt đầu từ bao nhiêu","cóng…kāishǐ","The price starts at 200 dollars."],
+["Poison → Poisonous","(n) → (adj)","chất độc → độc, cực độc","dú / yǒudú de","Some wild mushrooms are poisonous, so don't eat them."],
+["Motivated","(adj)","có cảm hứng, có động lực","yǒu dònglì de / jījí de","I feel motivated to study when I see my progress."],
+["Keep in touch with","","giữ liên lạc với","bǎochí liánxì","I keep in touch with my old classmates through Zalo."],
+["Grandchildren","(n)","các cháu","sūnbèi","My grandmother loves playing with her grandchildren."],
+["Consequence → Consequently","(n) → (adv)","hậu quả → do đó","hòuguǒ / yīncǐ","If you skip sleep, one consequence is that you feel tired all day."],
+["Stand out","(v)","nổi bật","tūchū / tuōyǐng ér chū","Her red dress made her stand out in the crowd."],
+["Outstanding","(adj)","cực kỳ nổi bật, xuất sắc","jiéchū / chūsè","He got outstanding results in the final exam."],
+["Obscure = mysterious = mystic","(adj)","bí ẩn, chưa rõ","bù míngquè / shénmì","The origin of this old song is obscure."],
+["Conquer","(v)","chinh phục, đánh bại","zhēngfú / zhànshèng","He wants to conquer his fear of speaking English."],
+["Shipwreck","(n)","chìm tàu, tàu đắm","chénchuán","The divers found an old shipwreck at the bottom of the sea."],
+["Complicated","(adj)","phức tạp","fùzá","This form is too complicated, so I need some help."],
+["Cliff","(n)","vực, vách đá","xuányá","We stood at the edge of the cliff and looked at the sea."],
+["Polish → Polishing","(v) → (adj)","đánh bóng","pāoguāng / cāliàng","He polishes his shoes every Sunday."],
+["Fuel","(v) / (n)","tiếp lửa, tiếp năng lượng / nhiên liệu, năng lượng","tuīdòng / ránliào","A good breakfast fuels my whole morning."],
+["Mortality = death","(n)","cái chết, sự tử vong","sǐwánglǜ / sǐwáng","The mortality rate of this disease is much lower now."],
+["Literate → Literacy → Illiterate","(adj) → (n) → (adj)","biết đọc biết viết → khả năng đọc viết → mù chữ","shízì de / dúxiě nénglì / wénmáng","Reading books every day improves children's literacy."],
+["Evolve","(v)","thay đổi, tiến hóa","yǎnbiàn / jìnhuà","Our company's website has evolved a lot over the years."],
+["Proportion = percentage → Disproportionate = unequal","(n) → (adj)","tỉ lệ → không cân xứng","bǐlì / bù chéng bǐlì de","A large proportion of the budget went to marketing, which seems disproportionate."],
+["Emphasize → Emphasis","(v) → (n)","nhấn mạnh → sự nhấn mạnh","qiángdiào","The teacher emphasized that we must hand in homework on time."],
+["Rote learning","","học thuộc lòng một cách máy móc","sǐjì yìngbèi","Rote learning can help you remember words, but it is not always fun."],
+["Foster = nurture","(v)","nuôi dưỡng, thúc đẩy","péiyǎng","Good teachers foster a love of reading in their students."],
+["Equip","(v)","trang bị","pèibèi","The school equips each classroom with a projector."],
+["Thrive = grow","(v)","phát triển mạnh","zhuózhuàng chéngzhǎng / péngbó fāzhǎn","Plants thrive in warm weather with a lot of sunlight."],
+["Notable = outstanding","(adj)","đáng chú ý, nổi bật","zhídé zhùyì de / xiǎnzhù","One notable feature of this phone is its long battery life."],
+["Pursue","(v)","theo đuổi","zhuīqiú","She moved to a big city to pursue her dream of becoming a teacher."],
+["Facilitate → Facility","(v) → (n)","trang bị (= equip); nghĩa hay gặp nhất là tạo điều kiện, làm cho dễ hơn → cơ sở vật chất","cùjìn / shǐ biànlì / shèshī","Online tools facilitate learning by making lessons easier to follow."],
+["Consolidate","(v)","thống nhất, củng cố","gǒnggù","I review my notes every weekend to consolidate what I learned."],
+["Ultimately ← Ultimate","(adv) ← (adj)","cuối cùng","zuìzhōng","We tried many ways, but ultimately we chose the simplest one."],
+["Stem from = start from = begin with","","bắt nguồn từ","yuányú / láizì","Many problems stem from a small mistake at the beginning."],
+["Intense → Intensive","(adj) → (adj)","căng thẳng, dữ dội → chuyên sâu","jīliè / jǐnzhāng / mìjí de","Exam week was intense, and everyone felt stressed."],
+["Prerequisite","(n)","điều kiện tiên quyết","xiānjué tiáojiàn","Basic English is a prerequisite for this course."],
+["Fierce","(adj)","hung dữ, khốc liệt","jīliè / xiōngměng","There is fierce competition between the two online shops."],
+["Desire → Desirable","(n) → (adj)","khát vọng → đáng mong muốn","kěwàng / lìng rén xiàngwǎng de","Many students have a strong desire to get a desirable job after graduation."],
+["Persistent → Persist","(adj) → (v)","bền bỉ → bền bỉ, kiên quyết với điều gì","jiānchí búxiè / jiānchí","With persistent practice, my speaking got better."],
+["Inadequacy ← Adequate = enough → Adequacy","(n) ← (adj) → (n)","sự không đủ đầy ← đủ đầy → sự đủ đầy","bùzú / zúgòu","He felt a sense of inadequacy because his English was not as good as his friends'."],
+["Peer","(n)","bạn đồng trang lứa","tónglíngrén","Teenagers often listen to their peers more than their parents."],
+["Consist of","(v)","bao gồm","bāokuò / yóu…zǔchéng","The team consists of five engineers and one designer."],
+["Several","(adj/det)","một số, vài","jǐ ge / ruògān","I've been to that restaurant several times."]
+].map((r,i)=>({id:i, w:r[0], t:r[1], v:r[2], p:r[3], e:r[4]}));
+
+const DAY_SIZE = 7;
+const LS_KEY = "ielts_vocab_state_v1";
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return {known:{}, weak:{}, cursor:0};
+}
+function saveState(){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+let state = loadState();
+let mode = "today";
+let idx = 0;
+let flipped = false;
+
+function todayWords(){
+  return VOCAB.slice(state.cursor, Math.min(state.cursor + DAY_SIZE, VOCAB.length));
+}
+function reviewWords(){
+  return VOCAB.filter(w => state.weak[w.id]);
+}
+function currentDeck(){
+  if(mode === "today") return todayWords();
+  if(mode === "review") return reviewWords();
+  return VOCAB;
+}
+
+function render(){
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.classList.toggle("active", t.dataset.mode === mode);
+  });
+  document.getElementById("countToday").textContent = "(" + todayWords().length + ")";
+  document.getElementById("countReview").textContent = "(" + reviewWords().length + ")";
+  document.getElementById("countAll").textContent = "(" + VOCAB.length + ")";
+
+  const knownCount = Object.keys(state.known).filter(k=>state.known[k]).length;
+  document.getElementById("progressLabel").textContent = knownCount + "/" + VOCAB.length + " đã thuộc";
+  document.getElementById("progressFill").style.width = (knownCount/VOCAB.length*100) + "%";
+
+  const deck = currentDeck();
+  const deckArea = document.getElementById("deckArea");
+  const deckInfo = document.getElementById("deckInfo");
+
+  if(deck.length === 0){
+    deckInfo.textContent = "";
+    deckArea.innerHTML = "";
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    if(mode === "review"){
+      empty.innerHTML = '<div class="big">Không có từ cần ôn 🎉</div><div>Những từ mày chọn "Chưa thuộc" sẽ hiện ở đây.</div>';
+    }else if(mode === "today" && state.cursor >= VOCAB.length){
+      empty.innerHTML = '<div class="big">Học hết 131 từ rồi!</div><div>Qua tab "Tất cả" để ôn lại bất cứ lúc nào.</div>';
+    }else{
+      empty.innerHTML = '<div class="big">Chưa có từ</div>';
+    }
+    deckArea.appendChild(empty);
+    return;
+  }
+
+  if(mode === "today"){
+    const answered = deck.filter(w => state.known[w.id] || state.weak[w.id]).length;
+    if(answered === deck.length){
+      deckInfo.textContent = "";
+      deckArea.innerHTML = "";
+      const done = document.createElement("div");
+      done.className = "empty-state";
+      const knownInBatch = deck.filter(w => state.known[w.id]).length;
+      done.innerHTML = '<div class="big">Xong ' + deck.length + ' từ hôm nay! 🎉</div><div>' + knownInBatch + '/' + deck.length + ' thuộc ngay, còn lại nằm ở tab Ôn tập.</div>';
+      if(state.cursor + DAY_SIZE < VOCAB.length || state.cursor < VOCAB.length){
+        const btn = document.createElement("button");
+        btn.className = "primary-btn";
+        btn.textContent = "Qua đợt từ tiếp theo →";
+        btn.addEventListener("click", ()=>{
+          state.cursor = Math.min(state.cursor + DAY_SIZE, VOCAB.length);
+          saveState();
+          idx = 0; flipped = false;
+          render();
+        });
+        done.appendChild(btn);
+      }
+      deckArea.appendChild(done);
+      return;
+    }
+  }
+
+  if(idx >= deck.length) idx = 0;
+  if(idx < 0) idx = deck.length - 1;
+  const w = deck[idx];
+
+  deckInfo.innerHTML = "<span>" + (mode==="today"?"Hôm nay":mode==="review"?"Ôn tập":"Tất cả") + "</span><span><b>" + (idx+1) + "</b>/" + deck.length + "</span>";
+
+  deckArea.innerHTML = `
+    <div class="card-wrap">
+      <div class="card ${flipped?'flipped':''}" id="cardEl">
+        <div class="face front">
+          <div class="type-pill">${w.t ? w.t : "từ / cụm từ"}</div>
+          <div class="front-word">${w.w}</div>
+          <div class="hint">👆 chạm để xem nghĩa</div>
+        </div>
+        <div class="face back">
+          <div class="back-label">Nghĩa</div>
+          <div class="back-vi">${w.v}</div>
+          <div class="back-pinyin">拼音 ${w.p}</div>
+          <div class="back-label">Ví dụ</div>
+          <div class="back-example">${w.e}</div>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="nav-btn" id="prevBtn">‹</button>
+      <div class="mark-btns">
+        <button class="mark-btn dontknow ${state.weak[w.id]?'active':''}" id="dontKnowBtn">✗ Chưa thuộc</button>
+        <button class="mark-btn know ${state.known[w.id]?'active':''}" id="knowBtn">✓ Thuộc rồi</button>
+      </div>
+      <button class="nav-btn" id="nextBtn">›</button>
+    </div>
+  `;
+
+  const cardEl = document.getElementById("cardEl");
+  cardEl.addEventListener("click", ()=>{ flipped = !flipped; render(); });
+
+  let touchX = null;
+  cardEl.addEventListener("touchstart", e=>{ touchX = e.touches[0].clientX; }, {passive:true});
+  cardEl.addEventListener("touchend", e=>{
+    if(touchX===null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx) > 50){ dx < 0 ? goNext() : goPrev(); }
+    touchX = null;
+  }, {passive:true});
+
+  document.getElementById("prevBtn").addEventListener("click", e=>{ e.stopPropagation(); goPrev(); });
+  document.getElementById("nextBtn").addEventListener("click", e=>{ e.stopPropagation(); goNext(); });
+  document.getElementById("knowBtn").addEventListener("click", e=>{
+    e.stopPropagation();
+    state.known[w.id] = true;
+    delete state.weak[w.id];
+    saveState();
+    goNext();
+  });
+  document.getElementById("dontKnowBtn").addEventListener("click", e=>{
+    e.stopPropagation();
+    state.weak[w.id] = true;
+    delete state.known[w.id];
+    saveState();
+    goNext();
+  });
+}
+
+function goNext(){ flipped=false; idx = (idx+1) % Math.max(currentDeck().length,1); render(); }
+function goPrev(){ flipped=false; const n=currentDeck().length; idx = (idx-1+n) % Math.max(n,1); render(); }
+
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    mode = tab.dataset.mode;
+    idx = 0; flipped = false;
+    render();
+  });
+});
+
+render();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("service-worker.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>

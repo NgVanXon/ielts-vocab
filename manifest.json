@@ -1,0 +1,12 @@
+{
+  "name": "Flashcard IELTS - Từ vựng",
+  "short_name": "IELTS Vocab",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#11161d",
+  "theme_color": "#11161d",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
